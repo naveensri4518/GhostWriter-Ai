@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GhostWriter AI 👻 | Stories from the Other Side</title>
+  <meta name="description" content="Generate chilling personalized horror stories powered by open-weight local AI through Ollama.">
+
+  <!-- Google Fonts for Gothic & Atmospheric Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <!-- Ambient Fog & Particle Canvas -->
+  <canvas id="ambient-fog" class="ambient-canvas"></canvas>
+
+  <div class="page-wrapper">
+    <!-- Header -->
+    <header class="site-header">
+      <div class="container header-container">
+        <div class="brand-group">
+          <div class="ghost-logo" aria-hidden="true">👻</div>
+          <div class="brand-text">
+            <h1 class="brand-title">GHOSTWRITER <span class="ai-badge">AI</span></h1>
+            <p class="brand-subtitle">Stories from the Other Side</p>
+          </div>
+        </div>
+
+        <!-- AI Service Status Indicator -->
+        <div class="ai-status-card" id="ai-status-pill" title="Checking local AI service...">
+          <div class="status-indicator">
+            <span class="status-dot pulse" id="status-dot"></span>
+            <span class="status-label" id="status-label">Connecting to Ollama...</span>
+          </div>
+          <div class="status-meta">
+            <span class="status-model-badge" id="status-model-badge">{{ configured_model }}</span>
+            <button type="button" id="refresh-status-btn" class="refresh-btn" title="Refresh local AI status" aria-label="Refresh Status">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <div class="container">
+        
+        <!-- Hero Section -->
+        <section class="hero-section">
+          <div class="hero-badge">🎃 Hacktoberfest Open-Source AI Challenge • Week 4: Ghost in the Machine</div>
+          <h2 class="hero-headline">Dare to Imagine.<br><span class="glow-text">Let the Darkness Write.</span></h2>
+          <p class="hero-subtext">
+            Channel eerie tales from the digital abyss. Powered entirely by open-weight AI running 
+            <strong>locally on your machine</strong> — zero cloud APIs, total privacy, pure nocturnal atmosphere.
+          </p>
+        </section>
+
+        <!-- Service Warning Banner (Shows when Ollama is offline or model missing) -->
+        <div class="service-banner hidden" id="service-banner">
+          <div class="service-banner-icon" id="service-banner-icon">⚠️</div>
+          <div class="service-banner-body">
+            <strong id="service-banner-title">Ollama Service Notice</strong>
+            <p id="service-banner-message">Checking local AI service...</p>
+          </div>
+        </div>
+
+        <!-- Story Configuration Studio -->
+        <section class="studio-section">
+          <form id="story-form" class="studio-card">
+            
+            <!-- Step 1: Story Prompt -->
+            <div class="form-group">
+              <div class="form-label-row">
+                <label for="prompt-input" class="form-label">
+                  <span class="step-num">1</span>
+                  <span>Describe Your Story Premise</span>
+                </label>
+                <span class="char-count" id="char-count">0 / 1000</span>
+              </div>
+              
+              <div class="textarea-wrapper">
+                <textarea 
+                  id="prompt-input" 
+                  name="prompt" 
+                  rows="4" 
+                  placeholder="e.g. A mysterious ghost appears in my college hostel at midnight, knocking on the doors that were sealed twenty years ago..."
+                  maxlength="1000"
+                  required
+                ></textarea>
+              </div>
+
+              <!-- Quick Prompt Inspiration Chips -->
+              <div class="inspiration-group">
+                <span class="inspiration-label">Need inspiration?</span>
+                <div class="chip-container">
+                  <button type="button" class="prompt-chip" data-prompt="A vintage mirror purchased at an estate sale reflects a bedroom that is not mine—and something is climbing out.">🪞 The Cursed Mirror</button>
+                  <button type="button" class="prompt-chip" data-prompt="A mysterious ghost appears in my college hostel at midnight, walking through sealed doorways.">🚪 College Hostel Haunting</button>
+                  <button type="button" class="prompt-chip" data-prompt="The last subway train of the night takes an unmapped tunnel and stops at an abandoned subterranean platform.">🚇 The Midnight Express</button>
+                  <button type="button" class="prompt-chip" data-prompt="An old radio starts receiving emergency broadcast warnings dated three days into the future.">📻 Static from Tomorrow</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Horror Category Selector -->
+            <div class="form-group">
+              <div class="form-label-row">
+                <span class="form-label">
+                  <span class="step-num">2</span>
+                  <span>Choose Your Horror Category</span>
+                </span>
+                <span class="selected-indicator" id="category-selected-tag">Ghost Stories</span>
+              </div>
+
+              <div class="category-grid" role="radiogroup" aria-label="Horror Category">
+                
+                <label class="selection-card">
+                  <input type="radio" name="category" value="Haunted House">
+                  <div class="card-inner">
+                    <span class="card-icon">🏚️</span>
+                    <span class="card-title">Haunted House</span>
+                    <span class="card-desc">Oppressive halls, watchtower shadows, ancient architecture that breathes.</span>
+                  </div>
+                </label>
+
+                <label class="selection-card">
+                  <input type="radio" name="category" value="Supernatural">
+                  <div class="card-inner">
+                    <span class="card-icon">🔮</span>
+                    <span class="card-title">Supernatural</span>
+                    <span class="card-desc">Entities defying physics, arcane rituals, eldritch anomalies.</span>
+                  </div>
+                </label>
+
+                <label class="selection-card">
+                  <input type="radio" name="category" value="Psychological Horror">
+                  <div class="card-inner">
+                    <span class="card-icon">🧠</span>
+                    <span class="card-title">Psychological</span>
+                    <span class="card-desc">Distorted sanity, unreliable memories, creeping dread and paranoia.</span>
+                  </div>
+                </label>
+
+                <label class="selection-card">
+                  <input type="radio" name="category" value="Ghost Stories" checked>
+                  <div class="card-inner">
+                    <span class="card-icon">👻</span>
+                    <span class="card-title">Ghost Stories</span>
+                    <span class="card-desc">Restless spirits, cold spots, spectral whispers and unfinished business.</span>
+                  </div>
+                </label>
+
+                <label class="selection-card">
+                  <input type="radio" name="category" value="Urban Legends">
+                  <div class="card-inner">
+                    <span class="card-icon">🏙️</span>
+                    <span class="card-title">Urban Legends</span>
+                    <span class="card-desc">Cursed tech, dark city corridors, forbidden folklore whispered after dark.</span>
+                  </div>
+                </label>
+
+              </div>
+            </div>
+
+            <!-- Step 3: Ending Selector -->
+            <div class="form-group">
+              <div class="form-label-row">
+                <span class="form-label">
+                  <span class="step-num">3</span>
+                  <span>Select the Climax & Ending</span>
+                </span>
+                <span class="selected-indicator" id="ending-selected-tag">Terrifying</span>
+              </div>
+
+              <div class="ending-grid" role="radiogroup" aria-label="Story Ending">
+                
+                <label class="selection-card ending-card">
+                  <input type="radio" name="ending" value="Terrifying" checked>
+                  <div class="card-inner">
+                    <span class="card-icon">🩸</span>
+                    <div class="card-text-block">
+                      <span class="card-title">Terrifying</span>
+                      <span class="card-desc">Inescapable dread, lingering nightmares, and pure visceral terror.</span>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="selection-card ending-card">
+                  <input type="radio" name="ending" value="Tragic">
+                  <div class="card-inner">
+                    <span class="card-icon">🥀</span>
+                    <div class="card-text-block">
+                      <span class="card-title">Tragic</span>
+                      <span class="card-desc">Heartbreaking sorrow, agonizing sacrifices, and poignant loss.</span>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="selection-card ending-card">
+                  <input type="radio" name="ending" value="Unexpected Twist">
+                  <div class="card-inner">
+                    <span class="card-icon">🌀</span>
+                    <div class="card-text-block">
+                      <span class="card-title">Unexpected Twist</span>
+                      <span class="card-desc">A shocking revelation that flips reality and turns assumptions upside down.</span>
+                    </div>
+                  </div>
+                </label>
+
+              </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+              <button type="submit" id="generate-btn" class="btn btn-primary btn-summon">
+                <span class="btn-icon">🕯️</span>
+                <span class="btn-text">Summon Story</span>
+                <span class="key-hint">Ctrl + Enter</span>
+              </button>
+            </div>
+
+          </form>
+        </section>
+
+        <!-- Loading State Animation (Spooky Spirits) -->
+        <section class="loading-section hidden" id="loading-section" aria-live="polite">
+          <div class="loading-card">
+            <div class="spooky-orb">
+              <div class="orb-core"></div>
+              <div class="orb-ring ring-1"></div>
+              <div class="orb-ring ring-2"></div>
+              <div class="ghost-float">👻</div>
+            </div>
+
+            <h3 class="loading-title">The spirits are writing your story...</h3>
+            <p class="loading-subtitle" id="loading-stage">Communing with local open-weight AI model...</p>
+            
+            <div class="eerie-bar-container">
+              <div class="eerie-bar-glow"></div>
+            </div>
+            
+            <p class="loading-footer-tip">Inference runs 100% locally on your hardware. No cloud tokens consumed.</p>
+          </div>
+        </section>
+
+        <!-- Error Card Display -->
+        <div class="error-banner hidden" id="error-banner" role="alert">
+          <div class="error-icon">🩸</div>
+          <div class="error-body">
+            <h4 class="error-title">Incantation Disrupted</h4>
+            <p class="error-message" id="error-message">An unexpected error occurred.</p>
+          </div>
+          <button type="button" class="error-close-btn" id="error-close-btn" aria-label="Dismiss error">&times;</button>
+        </div>
+
+        <!-- Generated Story Showcase -->
+        <section class="story-section hidden" id="story-section">
+          <article class="story-card">
+            
+            <!-- Story Header -->
+            <div class="story-header">
+              <div class="story-meta-pills">
+                <span class="meta-pill category-pill" id="story-category-badge">Ghost Stories</span>
+                <span class="meta-pill ending-pill" id="story-ending-badge">Terrifying</span>
+                <span class="meta-pill model-pill" id="story-model-badge">qwen2.5:3b</span>
+                <span class="meta-pill stats-pill" id="story-stats-badge">420 words • 2 min read</span>
+              </div>
+
+              <h2 class="story-title" id="story-title">Untitled Horror</h2>
+            </div>
+
+            <!-- Story Body -->
+            <div class="story-divider" aria-hidden="true">
+              <span class="divider-line"></span>
+              <span class="divider-icon">💀</span>
+              <span class="divider-line"></span>
+            </div>
+
+            <div class="story-body" id="story-body">
+              <!-- Rendered story paragraphs go here -->
+            </div>
+
+            <!-- Story Footer Controls -->
+            <div class="story-actions">
+              <div class="action-group-left">
+                <button type="button" id="copy-story-btn" class="btn btn-secondary">
+                  <span class="btn-icon">📋</span>
+                  <span id="copy-btn-text">Copy Story</span>
+                </button>
+                <button type="button" id="download-story-btn" class="btn btn-secondary">
+                  <span class="btn-icon">📜</span>
+                  <span>Download (.txt)</span>
+                </button>
+              </div>
+
+              <div class="action-group-right">
+                <button type="button" id="regenerate-btn" class="btn btn-accent">
+                  <span class="btn-icon">🔄</span>
+                  <span>Regenerate Story</span>
+                </button>
+              </div>
+            </div>
+
+          </article>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="container footer-container">
+        <div class="footer-left">
+          <p class="footer-main-text">
+            <strong>GhostWriter AI</strong> — Powered by open-weight AI. Your imagination, your machine, your stories.
+          </p>
+          <p class="footer-sub-text">
+            Running via <a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a> with local model <code id="footer-model-name">{{ configured_model }}</code>.
+          </p>
+        </div>
+        <div class="footer-right">
+          <span class="footer-badge">🔒 100% Local Inference</span>
+          <span class="footer-badge">🎃 Hacktoberfest 2024</span>
+          <span class="footer-badge">👻 Ghost in the Machine</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="toast-notification hidden" role="status" aria-live="polite"></div>
+
+  <!-- JavaScript -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
